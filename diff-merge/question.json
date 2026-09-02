@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "id": "diff-merge",
+  "title": "Diff / Merge",
+  "language": "python",
+  "difficulty": "hard",
+  "tags": [
+    "diffing",
+    "text-processing",
+    "version-control",
+    "merge"
+  ],
+  "companies": [
+    "Jane Street"
+  ],
+  "totalBudgetMin": 45,
+  "designGate": {
+    "prompt": "Before writing code, sketch how you will represent a diff from one list of lines to another, and what `apply` needs to know to replay it. Name your diff type and the invariants `apply` will check before mutating anything.",
+    "requiredElements": [
+      "diff representation named (your choice of shape)",
+      "apply validation rules named"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Line diff and apply",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 15,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "What is the minimum information a patch needs so `apply` can walk `old_code` left-to-right without guessing?"
+        },
+        {
+          "level": 2,
+          "text": "Most representations are some mix of 'keep these lines', 'drop these', 'insert these' — the interesting choice is whether you batch consecutive ops or emit one per line."
+        },
+        {
+          "level": 3,
+          "text": "A list of tagged runs (equal / delete / insert), each with a `lines` payload, is enough. `apply` consumes `old_code` for equal and delete, inserts without consuming for insert, and raises if anything does not line up."
+        }
+      ],
+      "probes": [
+        "Why did you pick this diff shape over a unified-diff string or raw edit script?",
+        "Two different diffs can both round-trip the same pair — what did you optimize for?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 2,
+      "title": "Three-way merge, no conflicts",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 15,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "You already know how each side differs from `base` — what does comparing those two diffs tell you that diffing `mine` against `theirs` directly would not?"
+        },
+        {
+          "level": 2,
+          "text": "Walk each side's diff against `base`: for every base line, did this side keep or delete it? For every gap between base lines, what did this side insert?"
+        },
+        {
+          "level": 3,
+          "text": "Per side: a keep/delete flag per base line and a list of insertions at each of the len(base)+1 gaps. A base line survives if both kept it. A gap takes whichever side inserted (or both if equal)."
+        }
+      ],
+      "probes": [
+        "What did you do for the case where mine and theirs changed the exact same spot differently — was that a decision or an accident?",
+        "If a third contributor showed up, would your approach extend?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 3,
+      "title": "Pluggable conflict policy",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 15,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Part 2 silently picked a side when overlapping edits disagreed — where in your merge loop did that happen?"
+        },
+        {
+          "level": 2,
+          "text": "Extract that branch into `ConflictPolicy.resolve_gap(gap_mine, gap_theirs)`. The merge loop stays the same; only the policy changes."
+        },
+        {
+          "level": 3,
+          "text": "`RaiseOnConflict` raises when both gaps are non-empty and unequal. `PreferMine` returns `gap_mine`. `Markers` splices both with `<<<<<<< mine` / `=======` / `>>>>>>> theirs`."
+        }
+      ],
+      "probes": [
+        "Why is `PreferMine` the right default for part 2 but not part 3?",
+        "What would a `Union` policy do, and when would it be dangerous?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "round-trip tests green",
+        "no part-1/part-2 regression",
+        "default policy raises on conflict; alternate policies behave as specified"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "diff representation is coherent and explainable",
+        "merge built on diff/apply rather than a parallel ad-hoc comparator",
+        "conflict resolution extracted into a pluggable policy seam"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "apply validates before mutating",
+        "no silent swallow of malformed patches"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "empty inputs and non-overlapping edits considered before being told"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated why their diff format makes apply and merge tractable"
+      ]
+    }
+  },
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-19T21:18:00Z",
+    "authorSessionId": null
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-20T06:30:00Z"
+  }
+}

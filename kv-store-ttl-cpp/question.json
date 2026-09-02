@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "language": "cpp",
+  "companies": [],
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-09-01T00:00:00Z",
+    "authorSessionId": null
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-09-01T00:00:00Z"
+  },
+  "id": "kv-store-ttl-cpp",
+  "title": "KV Store + TTL",
+  "difficulty": "easy",
+  "tags": [
+    "kv",
+    "ttl",
+    "watchers",
+    "lazy-expiry"
+  ],
+  "totalBudgetMin": 30,
+  "designGate": {
+    "prompt": "Before writing code, sketch what you store per key once TTL exists, and how watchers learn about expiry without a background thread.",
+    "requiredElements": [
+      "per-key value+expiry shape named",
+      "how expiry notifies watchers"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Basic KV",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 8,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "A plain dict is enough."
+        }
+      ],
+      "probes": [
+        "What does erase return on a missing key?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 2,
+      "title": "TTL",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 10,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Store expiry timestamp; lazy-drop on get."
+        }
+      ],
+      "probes": [
+        "Why inject a clock?",
+        "What does put without ttl do to an existing ttl?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 3,
+      "title": "Watchers",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 12,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Map key -> callbacks; notify on put/delete/expiry discovery."
+        }
+      ],
+      "probes": [
+        "When is expiry discovered?",
+        "Can unwatch mid-notify?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "ttl lazy drop",
+        "watcher notify"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "clock injection",
+        "expire_due sweep"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "no background thread"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "ttl clear on put"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated lazy expiry"
+      ]
+    }
+  },
+  "family": "kv-store-ttl"
+}

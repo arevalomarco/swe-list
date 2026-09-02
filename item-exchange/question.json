@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "id": "item-exchange",
+  "title": "Item Exchange",
+  "language": "python",
+  "difficulty": "hard",
+  "tags": [
+    "transactions",
+    "reservations",
+    "atomicity",
+    "state-machine"
+  ],
+  "companies": [
+    "Jane Street"
+  ],
+  "totalBudgetMin": 45,
+  "designGate": {
+    "prompt": "Before writing code, sketch how you will track owned vs reserved inventory per user/item, and what a pending trade stores so accept and cancel can finish or unwind without scanning all balances. Name the reservation structure and the trade record.",
+    "requiredElements": [
+      "owned vs reserved inventory named",
+      "pending trade / legs record named"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Inventory and propose (reserve)",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 15,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "get must not return qty that is already locked in an open proposal. What two numbers do you need per (user, item)?"
+        },
+        {
+          "level": 2,
+          "text": "owned[user][item] and reserved[user][item]. available = owned - reserved. propose bumps reserved on both sides."
+        },
+        {
+          "level": 3,
+          "text": "If the second reserve fails, undo the first — otherwise a failed propose leaks a lock on the buyer."
+        }
+      ],
+      "probes": [
+        "What does get return while a proposal is open?",
+        "How do you avoid leaving a partial reservation if seller cannot cover?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 2,
+      "title": "Accept and cancel",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 15,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "accept moves owned amounts and clears reserved; cancel only clears reserved. What status prevents doing either twice?"
+        },
+        {
+          "level": 2,
+          "text": "Store legs as (from, to, item, qty). accept: owned[from]-=qty, owned[to]+=qty, reserved[from]-=qty."
+        },
+        {
+          "level": 3,
+          "text": "Unknown id or status != pending -> ValueError for both accept and cancel."
+        }
+      ],
+      "probes": [
+        "Walk through balances after accept on the worked example.",
+        "Why is double-accept an error rather than a no-op?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 3,
+      "title": "Multi-leg propose_legs",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 15,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "propose is two legs. propose_legs is N legs with the same reserve-all-or-none rule."
+        },
+        {
+          "level": 2,
+          "text": "Reserve in order; on failure release in reverse. Reuse accept/cancel unchanged."
+        },
+        {
+          "level": 3,
+          "text": "Implement propose via propose_legs so one code path owns reservations."
+        }
+      ],
+      "probes": [
+        "What must be true after a failed propose_legs — any residual reserved qty?",
+        "How would you extend this to timeouts on pending trades?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "all suites green",
+        "no part-1/part-2 regression",
+        "failed propose / propose_legs leave no residual reservations"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "owned vs reserved split is explicit",
+        "propose reuses the same leg/reservation path as propose_legs"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "rollback on partial reserve failure",
+        "trade status guards accept/cancel"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "insufficient inventory and double-settle cases considered"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated what get returns under an open reservation"
+      ]
+    }
+  },
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-21T00:00:00Z",
+    "authorSessionId": null,
+    "note": "Rewritten to inventory / propose / accept / propose_legs arc (peak_question_bank itemexchange.py)."
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-21T07:00:00Z"
+  }
+}

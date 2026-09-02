@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "language": "python",
+  "companies": [
+    "Jane Street"
+  ],
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-21T00:00:00Z",
+    "authorSessionId": null
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-21T00:00:00Z"
+  },
+  "id": "feed-sync",
+  "title": "Feed Sync",
+  "difficulty": "hard",
+  "tags": [
+    "market-data",
+    "reconciliation",
+    "skew",
+    "sequence"
+  ],
+  "totalBudgetMin": 50,
+  "designGate": {
+    "prompt": "Before writing code, sketch how you key a price level update and when two updates from A and B are considered the same level. Name what changes when skew is non-zero.",
+    "requiredElements": [
+      "level key named",
+      "skew matching rule named"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Exact ts match",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 15,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Key by (ts, side, price); compare qty or mark missing."
+        }
+      ],
+      "probes": [
+        "What if both feeds miss different prices at the same ts?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 2,
+      "title": "Skew window",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 18,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Hold unmatched updates until opposite latest advances past skew."
+        }
+      ],
+      "probes": [
+        "When does an unmatched update become a discrepancy?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 3,
+      "title": "Sequence gaps",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 17,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Track expected seq per feed; gap -> stale until recover."
+        }
+      ],
+      "probes": [
+        "Why ignore book conflicts while stale?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "conflict shape",
+        "skew expiry",
+        "stale"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "pending buffers",
+        "seq state"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "clear conflict records"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "gap and skew edges"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated stale semantics"
+      ]
+    }
+  }
+}

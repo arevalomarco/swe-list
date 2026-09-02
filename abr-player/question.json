@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "id": "abr-player",
+  "title": "ABR Player",
+  "language": "python",
+  "difficulty": "hard",
+  "tags": [
+    "streaming",
+    "api-client",
+    "buffering",
+    "policy"
+  ],
+  "companies": [
+    "Jane Street"
+  ],
+  "totalBudgetMin": 45,
+  "designGate": {
+    "prompt": "Before coding, sketch how you will call their chunk API and what state you will track so a later 'never underrun' policy can choose quality without rewriting fetch. Name the buffer quantity.",
+    "requiredElements": [
+      "API seam named",
+      "buffer / playhead state named"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Max quality playback",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 12,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "qualities() is ordered low to high. Which index is max?"
+        },
+        {
+          "level": 2,
+          "text": "Fetch 0..n-1 at qualities()[-1] in order."
+        },
+        {
+          "level": 3,
+          "text": "Player only stores the api; play_max_quality is a simple loop."
+        }
+      ],
+      "probes": [
+        "What if qualities() is empty?",
+        "Why inject the API instead of hard-coding fetch?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 2,
+      "title": "Never underrun",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 18,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "What does buffered mean after you finish downloading a chunk but before the next decision?"
+        },
+        {
+          "level": 2,
+          "text": "Startup: fetch chunk 0 at max quality with no check. Then buffered = media(0). For later chunks, highest q with estimate(q,i) <= buffered."
+        },
+        {
+          "level": 3,
+          "text": "After pick: buffered -= estimate; buffered += media(i). If no q fits, ValueError."
+        }
+      ],
+      "probes": [
+        "Why is chunk 0 special-cased?",
+        "What do you do if even low quality estimates above buffered?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    },
+    {
+      "n": 3,
+      "title": "Smooth quality steps",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 15,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Track the previous quality's index in the ladder."
+        },
+        {
+          "level": 2,
+          "text": "Candidate qualities must also satisfy |idx - prev| <= max_step (except chunk 0)."
+        },
+        {
+          "level": 3,
+          "text": "Reuse the underrun loop; filter by step, then pick highest remaining."
+        }
+      ],
+      "probes": [
+        "Why limit step size if underrun already forces drops?",
+        "How would you adapt if estimate_fetch_seconds is noisy?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "all suites green",
+        "no part-1 regression",
+        "underrun path raises when unavoidable"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "Player consumes injected API only",
+        "buffer accounting is explicit"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "quality ladder scanned high-to-low"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "considered startup vs steady-state"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated the never-underrun invariant"
+      ]
+    }
+  },
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-25T00:00:00Z",
+    "authorSessionId": null,
+    "note": "From friend Jane Street SWE onsite (abr_player) / js_style bank."
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-25T20:00:00Z"
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "language": "python",
+  "companies": [],
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-21T00:00:00Z",
+    "authorSessionId": null
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-21T00:00:00Z"
+  },
+  "id": "pubsub",
+  "title": "Pub / Sub",
+  "difficulty": "medium",
+  "tags": [
+    "pubsub",
+    "queues",
+    "backpressure"
+  ],
+  "totalBudgetMin": 40,
+  "designGate": {
+    "prompt": "Before writing code, sketch how a topic maps to subscribers and what each subscription stores as its inbox. Name the structure for the inbox and how unsubscribe finds itself.",
+    "requiredElements": [
+      "topic-to-subscribers mapping named",
+      "per-subscription inbox named"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Topics and subscriptions",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 12,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "What does each subscriber need so read() can return the next message without scanning other topics?"
+        },
+        {
+          "level": 2,
+          "text": "A dict of topic -> list of subscriptions, each with its own queue, is enough."
+        },
+        {
+          "level": 3,
+          "text": "On publish, deepcopy the message into each live subscription's deque. Unsubscribe removes the sub from the topic list and flips a dead flag so read raises."
+        }
+      ],
+      "probes": [
+        "Why copy the message on publish?",
+        "What happens if you publish with zero subscribers?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 2,
+      "title": "Bounded queues",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 12,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "When capacity is set, what do you check before enqueueing?"
+        },
+        {
+          "level": 2,
+          "text": "publish's return value is a count of successful enqueues, not of subscribers seen."
+        },
+        {
+          "level": 3,
+          "text": "If len(queue) >= capacity, skip that sub (count 0 for it). Unbounded capacity=None never skips."
+        }
+      ],
+      "probes": [
+        "Does a full subscriber block others on the same topic?",
+        "What does capacity=0 mean?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 3,
+      "title": "Backpressure policy",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 16,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "The decision 'what to do when full' wants to be swappable without rewriting publish."
+        },
+        {
+          "level": 2,
+          "text": "Give each policy an offer(queue, capacity, message) -> bool (or raise)."
+        },
+        {
+          "level": 3,
+          "text": "DropOldest pops left then appends; DropNewest returns False; BlockStub raises BackpressureError."
+        }
+      ],
+      "probes": [
+        "Why is BlockStub a stub and not real blocking?",
+        "Does set_policy drain existing queues?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "all suites green",
+        "copies delivered",
+        "policy semantics exact"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "policy is a seam, not if/elif sprawl"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "deque for inbox"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "full-queue and unsubscribe edges considered"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated drop vs block tradeoff"
+      ]
+    }
+  }
+}

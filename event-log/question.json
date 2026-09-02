@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "event-log",
+  "title": "Event Log",
+  "language": "python",
+  "difficulty": "warmup",
+  "tags": ["collections", "indexing", "bounded-buffer"],
+  "companies": [],
+  "totalBudgetMin": 30,
+  "designGate": {
+    "prompt": "Before writing code, sketch the classes you intend and how you will store events. Name the data structure backing lookups by type.",
+    "requiredElements": ["at least one class", "storage choice named"]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "Append and read back",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 8,
+      "testDir": "tests/part1",
+      "hints": [
+        { "level": 1, "text": "What is the minimum state an EventLog needs to answer len() and all()?" },
+        { "level": 2, "text": "A list of records is enough for part 1. Think about what a record is: a type and a payload." },
+        { "level": 3, "text": "Store a list of (event_type, payload) tuples. append() pushes, all() returns them in insertion order." }
+      ],
+      "probes": [
+        "What is the complexity of append here?",
+        "If I asked for events of one type, would your current storage help you?"
+      ],
+      "advance": { "allTestsPass": true, "minProbeExchanges": 1 }
+    },
+    {
+      "n": 2,
+      "title": "Query by type",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 10,
+      "testDir": "tests/part2",
+      "hints": [
+        { "level": 1, "text": "A linear scan passes these tests. Is that the answer you would give in an interview?" },
+        { "level": 2, "text": "Consider maintaining an index from event type to the events of that type, updated on append." },
+        { "level": 3, "text": "Keep a dict mapping event_type to a list. append() writes to both the main log and the index." }
+      ],
+      "probes": [
+        "What did that cost you on append?",
+        "Your index duplicates the events. What happens if one of them is removed?"
+      ],
+      "advance": { "allTestsPass": true, "minProbeExchanges": 1 }
+    },
+    {
+      "n": 3,
+      "title": "Bounded capacity",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 12,
+      "testDir": "tests/part3",
+      "hints": [
+        { "level": 1, "text": "Eviction removes an event from the main log. Does anything else still point at it?" },
+        { "level": 2, "text": "Every structure holding a reference to an event must be updated when that event is evicted. That is the cost of the index you added in part 2." },
+        { "level": 3, "text": "On eviction, pop from the left of the log and remove the same event from its type bucket, deleting the bucket when it empties." }
+      ],
+      "probes": [
+        "Did your part-2 index survive this change, or did you have to rework it?",
+        "What would break if two events of the same type were evicted out of order?"
+      ],
+      "advance": { "allTestsPass": true, "minProbeExchanges": 1 }
+    }
+  ],
+  "rubric": {
+    "correctness": { "weight": 0.4, "criteria": ["all suites green", "no part-1 regression"] },
+    "design": { "weight": 0.3, "criteria": ["index introduced deliberately", "eviction keeps structures consistent"] },
+    "idioms": { "weight": 0.1, "criteria": ["appropriate stdlib use", "no manual index arithmetic where a deque fits"] },
+    "testing": { "weight": 0.1, "criteria": ["edge cases considered before being told"] },
+    "communication": { "weight": 0.1, "criteria": ["stated the tradeoff when adding the index"] }
+  },
+  "provenance": { "source": "handwritten", "createdAt": "2026-08-17T00:00:00Z", "authorSessionId": null },
+  "verification": { "referencePassesAllTests": true, "verifiedAt": "2026-08-17T00:00:00Z" }
+}

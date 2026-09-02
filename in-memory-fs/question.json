@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "language": "python",
+  "companies": [],
+  "provenance": {
+    "source": "handwritten",
+    "createdAt": "2026-08-21T00:00:00Z",
+    "authorSessionId": null
+  },
+  "verification": {
+    "referencePassesAllTests": true,
+    "verifiedAt": "2026-08-21T00:00:00Z"
+  },
+  "id": "in-memory-fs",
+  "title": "In-Memory FS",
+  "difficulty": "medium",
+  "tags": [
+    "filesystem",
+    "trees",
+    "inodes"
+  ],
+  "totalBudgetMin": 45,
+  "designGate": {
+    "prompt": "Before writing code, sketch how a path resolves to a node and what a directory node stores. Thinking ahead to hard links, what is shared between two names for the same file?",
+    "requiredElements": [
+      "path resolution approach named",
+      "what a directory stores",
+      "shared file identity named (inode/data)"
+    ]
+  },
+  "parts": [
+    {
+      "n": 1,
+      "title": "mkdir/ls/write/read",
+      "promptFile": "prompts/part1.md",
+      "budgetMin": 15,
+      "testDir": "tests/part1",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Root is a directory node. How do you walk /a/x?"
+        },
+        {
+          "level": 2,
+          "text": "Each dir holds name -> child node. Files hold bytes."
+        }
+      ],
+      "probes": [
+        "Why reject mkdir without parents?",
+        "What does ls on a file do?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 2,
+      "title": "rm/rmdir",
+      "promptFile": "prompts/part2.md",
+      "budgetMin": 10,
+      "testDir": "tests/part2",
+      "hints": [
+        {
+          "level": 1,
+          "text": "rmdir only if children empty; rm must refuse directories."
+        }
+      ],
+      "probes": [
+        "Why separate rm and rmdir?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 1
+      }
+    },
+    {
+      "n": 3,
+      "title": "Hard links",
+      "promptFile": "prompts/part3.md",
+      "budgetMin": 20,
+      "testDir": "tests/part3",
+      "hints": [
+        {
+          "level": 1,
+          "text": "Names point at inodes; nlink tracks how many names remain."
+        },
+        {
+          "level": 2,
+          "text": "link increments nlink; unlink decrements and drops the dir entry."
+        }
+      ],
+      "probes": [
+        "When is file data actually freed?",
+        "Why can't you link a directory?"
+      ],
+      "advance": {
+        "allTestsPass": true,
+        "minProbeExchanges": 2
+      }
+    }
+  ],
+  "rubric": {
+    "correctness": {
+      "weight": 0.4,
+      "criteria": [
+        "path errors exact",
+        "links share data"
+      ]
+    },
+    "design": {
+      "weight": 0.3,
+      "criteria": [
+        "inode separated from directory entry"
+      ]
+    },
+    "idioms": {
+      "weight": 0.1,
+      "criteria": [
+        "clear tree walk"
+      ]
+    },
+    "testing": {
+      "weight": 0.1,
+      "criteria": [
+        "nonempty rmdir considered"
+      ]
+    },
+    "communication": {
+      "weight": 0.1,
+      "criteria": [
+        "stated nlink semantics"
+      ]
+    }
+  }
+}
