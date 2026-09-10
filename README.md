@@ -26,6 +26,16 @@ Python pads are ordinary files; they are not wired to a test suite. C++ pads wra
 
 A `-cpp` suffix is a C++ translation of the same family (`event-log` / `event-log-cpp`).
 
+## Ones I sat
+
+Questions from interviews I actually took. The rest of the bank is practice; company tags there are “this shop asks things like this,” not “I got this prompt.”
+
+| Company | Pad | What it was |
+|---|---|---|
+| Jane Street | [`code-folding/QUESTION.py`](code-folding/QUESTION.py) | Code editor / folding — match braces, then fold/render `(..)`, then nested folds swallow inner ones |
+| Jane Street | [`arithmetic-encode/QUESTION.py`](arithmetic-encode/QUESTION.py) | Arithmetic encode/decode — uniform `[0,1)` split, then frequency-weighted, then adaptive |
+| Jump Trading | [`order-book/QUESTION.py`](order-book/QUESTION.py) | Order book — limit/market + price-time, then cancel by id, then amend |
+
 ## Bank
 
 | id | title | difficulty | language | companies |
@@ -40,6 +50,7 @@ A `-cpp` suffix is a C++ translation of the same family (`event-log` / `event-lo
 | `user-api` | User API | medium | python | |
 | `abr-player` | ABR Player | hard | python | Jane Street |
 | `arithmetic-encode` | Arithmetic Encode | hard | python | Jane Street |
+| `code-folding` | Code Folding | medium | python | Jane Street |
 | `diff-merge` | Diff / Merge | hard | python | Jane Street |
 | `feed-sync` | Feed Sync | hard | python | Jane Street |
 | `item-exchange` | Item Exchange | hard | python | Jane Street |
